@@ -6,8 +6,8 @@ import { deleteDynamoDbItem, getDynamoDbItem, putDynamoDbItem, updateDynamoDbIte
 import { deletePostgresItem, getPostgresDbItem, createPostgresDbItem, updatePostgresItem  } from "./postgresdb-item";
 import { deleteItem, getItem, putItem, updateItem, listItems } from "./local-item";
 import { createMysqlItem, deleteMysqlItem, getMysqlItem, updateMysqlItem } from "./mysql-item";
-import { createOne, getAll } from "./local-user";
 
+import usersController from "./controllers/users-controller"
 
 // Constants
 const PORT = 80;
@@ -15,7 +15,10 @@ const HOST = '0.0.0.0';
 
 // App handlers
 const app = express();
-const parser = json();
+
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.get("/", (req:any, res:any) => {
   res.status(200).send("hello world!");
@@ -29,8 +32,8 @@ app.get("/healthy", (req:any, res:any) => {
   res.status(200).send("healthy");
 });
 
-app.get('/users', parser, getAll);
-app.post('/users', parser, createOne);
+app.use('/users', usersController);
+
 
 const start = async () => {
   try {
