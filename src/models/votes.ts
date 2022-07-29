@@ -24,8 +24,7 @@ const Votes = db.define('votes', {
             model: db.models.quotes,
             key: 'id'
         }   
-    },
-    timestamp:{
-        type: Sequelize.DATE
     }
 });
+
+export default Votes;

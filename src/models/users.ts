@@ -20,6 +20,10 @@ const User = db.define('users', {
     password: {
         type: Sequelize.STRING,
         allowNull: false,
+    },
+    userProfileImg:{
+        type: Sequelize.STRING,
+        allowNull: true
     }
 })
 
