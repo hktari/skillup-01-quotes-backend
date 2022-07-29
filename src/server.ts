@@ -2,15 +2,18 @@ import * as express from "express";
 import { json } from "body-parser";
 import sequelize from './util/database'
 
-import { deleteDynamoDbItem, getDynamoDbItem, putDynamoDbItem, updateDynamoDbItem } from "./dynamodb-item";
-import { deletePostgresItem, getPostgresDbItem, createPostgresDbItem, updatePostgresItem  } from "./postgresdb-item";
-import { deleteItem, getItem, putItem, updateItem, listItems } from "./local-item";
-import { createMysqlItem, deleteMysqlItem, getMysqlItem, updateMysqlItem } from "./mysql-item";
-
 import usersController from "./controllers/users-controller"
 
+import {config, config as configEnvVars} from 'dotenv'
+const configReadin = configEnvVars();
+
+if(configReadin.error){
+  console.error('Error reading environment variables', configReadin.error);
+}
+
+
 // Constants
-const PORT = 80;
+const PORT = 8080;
 const HOST = '0.0.0.0';
 
 // App handlers
