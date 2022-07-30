@@ -21,7 +21,7 @@ router.route('/')
                 username: string,
                 userProfileImg: string
             }
-            const queryResult : QueryResult[] = await db.query(`SELECT quotes.id, text, "voteCount", "userId", users.username, users."userProfileImg"
+            const queryResult: QueryResult[] = await db.query(`SELECT quotes.id, text, "voteCount", "userId", users.username, users."userProfileImg"
             FROM quotes INNER JOIN users ON quotes."userId" = users.id`,
                 { type: Sequelize.QueryTypes.SELECT, raw: true })
 
@@ -34,15 +34,15 @@ router.route('/')
                     text: q.text,
                     voteCount: q.voteCount,
                     voteState: VoteState.novote, // TODO,
-                    user:{
+                    user: {
                         id: q.userId,
                         username: q.username,
                         karmaPoints: 0, // TODO
-                        profileImg:{
+                        profileImg: {
                             thumbnailUrl: q.userProfileImg
                         }
                     }
-                }                
+                }
             })
 
             return res.status(200).json(endResult);
@@ -80,20 +80,30 @@ router.route('/:id')
     })
 
 router.post('/:id/vote', async (req: Request, res: Response, next: NextFunction) => {
-    console.log('vote QUOTES ', req.params.id, 'VOTE: ', req.body.voteState)
+    const ID = req.params.id;
+    console.log('vote QUOTES ', ID, 'VOTE: ', req.body.voteState)
 
     try {
-        const quote = await Quotes.findByPk(req.params.id);
+        let quote = await Quotes.findByPk(ID);
+        if (!quote) {
+            return res.status(404).end();
+        }
+
+        console.log('vote QUOTE found ');
+
         // TODO: get userId from token
         await Votes.findOrCreate({
             where: {
-                quoteId: req.params.id,
-                userId: 99,
+                quoteId: ID,
+                userId: req.body.userId,
                 voteState: req.body.voteState
             }
         })
-        console.log('vote QUOTES OK ', quote);
-        return res.status(200).json(quote.dataValues);
+        console.log('vote CREATE OK');
+
+        quote = await quote.increment("voteCount")
+
+        return res.status(200).json(quote);
     } catch (error) {
         console.error('vote QUOTES ERR', error);
         return res.status(400).json(error);
