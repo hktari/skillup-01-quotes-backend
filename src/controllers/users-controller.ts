@@ -65,7 +65,24 @@ async function updateOne(req: Request, res: Response, next: NextFunction) {
 }
 
 async function deleteOne(req: Request, res: Response, next: NextFunction) {
-    return res.status(400).send('not implemented');
+    const ID = req.params.id;
+    console.log('deleteOne: [DELETE] /users/' + ID);
+
+    try {
+        const deleteCount = await User.destroy({
+            where:{
+                id: ID
+            },
+            truncate: true,
+            cascade: true // delete quotes and votes ? 
+        })
+
+        console.log('deleteOne: /users/', ID, 'deleted ', deleteCount, ' entries')
+        return res.status(200).end();
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
 }
 
 
