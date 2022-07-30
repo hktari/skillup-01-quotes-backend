@@ -11,14 +11,18 @@ const router = express.Router()
 router.route('/')
     .get(async (req: Request, res: Response, next: NextFunction) => {
         console.log('getAll QUOTES')
-        const queryResult = await db.query(`SELECT id, text, voteCount, userId, users.username, users.userProfileImg
-                        FROM quotes INNER JOIN users ON quotes.id = users.userId`,
-            { type: Sequelize.QueryTypes.SELECT, raw: true })
-        console.log('getAll QUOTES OK', queryResult.dataValues)
+        try {
+            const queryResult = await db.query(`SELECT quotes.id, text, 'voteCount', 'userId', users.username, 'users.userProfileImg'
+            FROM quotes INNER JOIN users ON quotes.id = users.id;`,
+                { type: Sequelize.QueryTypes.SELECT, raw: true })
 
-        return res.status(200).json(queryResult.dataValues);
+            console.log('getAll QUOTES OK', queryResult?.dataValues, queryResult)
 
-        // TODO: add data and test
+            return res.status(200).json(queryResult.dataValues);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json(error)
+        }
     })
 
 router.route('/:id')
@@ -55,7 +59,7 @@ router.post('/:id/vote', async (req: Request, res: Response, next: NextFunction)
         return res.status(400).json(error);
     }
 })
-    
+
 
 
 
