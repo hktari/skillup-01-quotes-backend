@@ -3,6 +3,7 @@ import { json } from "body-parser";
 import sequelize from './util/database'
 
 import usersController from "./controllers/users-controller"
+import quotesController from './controllers/quotes-controller'
 
 import {config, config as configEnvVars} from 'dotenv'
 const configReadin = configEnvVars();
@@ -36,7 +37,7 @@ app.get("/healthy", (req:any, res:any) => {
 });
 
 app.use('/users', usersController);
-
+app.use('/quotes', quotesController);
 
 const start = async () => {
   try {

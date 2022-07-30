@@ -1,5 +1,6 @@
 import { emptyQuery } from 'pg-protocol/dist/messages'
 import * as Sequelize from 'sequelize'
+import { VoteState } from '../common/interface';
 import db from '../util/database'
 
 const Votes = db.define('votes', {
@@ -24,6 +25,11 @@ const Votes = db.define('votes', {
             model: db.models.quotes,
             key: 'id'
         }   
+    },
+    voteState:{
+        type: Sequelize.STRING,
+        allowNull: false,
+        isIn: [[VoteState.upvoted, VoteState.downvoted]],
     }
 });
 
