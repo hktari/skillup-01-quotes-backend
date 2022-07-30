@@ -3,16 +3,24 @@ import * as Sequelize from 'sequelize'
 import db from '../util/database'
 
 const Quotes = db.define('quotes', {
-    id:{
+    id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
     },
-    text:{
+    userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+            model: db.models.users,
+            key: 'id'
+        }
+    },
+    text: {
         type: Sequelize.STRING
     },
-    voteCount:{
+    voteCount: {
         type: Sequelize.INTEGER,
         defaultValue: 0
     }

@@ -4,6 +4,7 @@ import Votes from '../models/votes'
 import { Quote as QuoteDTO, User as UserDTO, AllQuotes, VoteState } from '../common/interface'
 import * as Sequelize from 'sequelize'
 import db from '../util/database'
+import { Query } from 'pg'
 
 const express = require('express');
 const router = express.Router()
@@ -12,16 +13,55 @@ router.route('/')
     .get(async (req: Request, res: Response, next: NextFunction) => {
         console.log('getAll QUOTES')
         try {
-            const queryResult = await db.query(`SELECT quotes.id, text, 'voteCount', 'userId', users.username, 'users.userProfileImg'
-            FROM quotes INNER JOIN users ON quotes.id = users.id;`,
+            type QueryResult = {
+                id: number,
+                text: string,
+                voteCount: number
+                userId: number,
+                username: string,
+                userProfileImg: string
+            }
+            const queryResult : QueryResult[] = await db.query(`SELECT quotes.id, text, "voteCount", "userId", users.username, users."userProfileImg"
+            FROM quotes INNER JOIN users ON quotes."userId" = users.id`,
                 { type: Sequelize.QueryTypes.SELECT, raw: true })
 
-            console.log('getAll QUOTES OK', queryResult?.dataValues, queryResult)
+            console.log('getAll QUOTES OK', queryResult)
 
-            return res.status(200).json(queryResult.dataValues);
+            // TODO: use sequelize to map query to model
+            const endResult = queryResult.map<QuoteDTO>(q => {
+                return {
+                    id: q.id,
+                    text: q.text,
+                    voteCount: q.voteCount,
+                    voteState: VoteState.novote, // TODO,
+                    user:{
+                        id: q.userId,
+                        username: q.username,
+                        karmaPoints: 0, // TODO
+                        profileImg:{
+                            thumbnailUrl: q.userProfileImg
+                        }
+                    }
+                }                
+            })
+
+            return res.status(200).json(endResult);
         } catch (error) {
             console.error(error);
             return res.status(500).json(error)
+        }
+    })
+    .post(async (req: Request, res: Response, next: NextFunction) => {
+        const USER_ID = req.body.userId; // TODO: get userid from token
+
+        console.log('createOne QUOTES', `user: ${USER_ID}`);
+
+        try {
+            const QUOTE = await Quotes.create({ userId: USER_ID, text: req.body.text })
+            console.log('createOne QUOTES', 'OK', QUOTE.dataValues)
+            return res.status(200).json(QUOTE);
+        } catch (error) {
+            return res.status(400).json(error);
         }
     })
 
