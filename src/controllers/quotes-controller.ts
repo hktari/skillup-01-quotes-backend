@@ -92,32 +92,22 @@ router.post('/:id/vote', async (req: Request, res: Response, next: NextFunction)
             return res.status(404).end();
         }
 
-        console.log('vote QUOTE found ');
-
-        await Votes.find({ quoteId: QUOTE_ID, userId: USER_ID })
+        console.log('QUOTE found');
 
         // either +1 or -1
         const voteCountModifier = (Number)(req.body.voteState);
 
-        let [vote, created] = await Votes.findOrCreate({
+        const votes = await quote.getVotes({
             where: {
-                quoteId: QUOTE_ID,
                 userId: USER_ID,
-                voteState: voteCountModifier
+                quoteId: QUOTE_ID
             }
-        })
+        });
 
-        if (created) {
-            console.log('vote CREATE OK');
-
-            console.log(`quote voteCount: ${quote.get("voteCount")} + ${voteCountModifier}`)
-
-            quote.set("voteCount", quote.get("voteCount") + voteCountModifier)
-            quote = await quote.save();
-            console.log('quote voteCount CHANGE  OK');
-        } else {
+        if (votes.length > 0) {
+            let vote = votes[0];
             // check if the user has changed his vote
-            if (vote.voteState !== voteCountModifier) {
+            if (+vote.get("voteState") !== voteCountModifier) {
                 vote.set("voteState", voteCountModifier);
                 vote = await vote.save();
                 console.log('vote UPDATE OK');
@@ -125,13 +115,23 @@ router.post('/:id/vote', async (req: Request, res: Response, next: NextFunction)
 
                 const curVoteCount = +quote.get("voteCount")
                 // in the case of vote change the vote count needs to be changed by 2
-                const changeVoteCountMod = voteCountModifier * 2; 
+                const changeVoteCountMod = voteCountModifier * 2;
 
                 console.log(`quote voteCount: ${curVoteCount} + ${changeVoteCountMod}`)
                 quote.set("voteCount", curVoteCount + changeVoteCountMod)
                 quote = await quote.save();
                 console.log('quote voteCount CHANGE OK');
             }
+        } else {
+            const vote = await quote.createVote({
+                userId: USER_ID,
+                voteState: voteCountModifier
+            })
+            console.log('vote CREATE OK');
+
+            console.log(`quote voteCount: ${quote.get("voteCount")} + ${voteCountModifier}`)
+            quote.set("voteCount", quote.get("voteCount") + voteCountModifier)
+            quote = await quote.save();
         }
 
         return res.status(200).json(quote);

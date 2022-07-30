@@ -4,6 +4,8 @@ import sequelize from './util/database'
 
 import usersController from "./controllers/users-controller"
 import quotesController from './controllers/quotes-controller'
+import setupRelations from './models/relations'
+setupRelations()
 
 import {config, config as configEnvVars} from 'dotenv'
 const configReadin = configEnvVars();
