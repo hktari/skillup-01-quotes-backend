@@ -1,7 +1,7 @@
 export enum VoteState {
-    novote = 'novote',
-    upvoted = 'upvoted',
-    downvoted = 'downvoted'
+    novote = 0,
+    upvoted = 1,
+    downvoted = -1
 }
 
 export interface AllQuotes{

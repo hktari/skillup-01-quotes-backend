@@ -80,28 +80,59 @@ router.route('/:id')
     })
 
 router.post('/:id/vote', async (req: Request, res: Response, next: NextFunction) => {
-    const ID = req.params.id;
-    console.log('vote QUOTES ', ID, 'VOTE: ', req.body.voteState)
+    const QUOTE_ID = req.params.id;
+    // TODO: get userId from token
+    const USER_ID = req.body.userId;
+
+    console.log('vote QUOTES ', QUOTE_ID, 'VOTE: ', req.body.voteState, 'userId: ', USER_ID)
 
     try {
-        let quote = await Quotes.findByPk(ID);
+        let quote = await Quotes.findByPk(QUOTE_ID);
         if (!quote) {
             return res.status(404).end();
         }
 
         console.log('vote QUOTE found ');
 
-        // TODO: get userId from token
-        await Votes.findOrCreate({
+        await Votes.find({ quoteId: QUOTE_ID, userId: USER_ID })
+
+        // either +1 or -1
+        const voteCountModifier = (Number)(req.body.voteState);
+
+        let [vote, created] = await Votes.findOrCreate({
             where: {
-                quoteId: ID,
-                userId: req.body.userId,
-                voteState: req.body.voteState
+                quoteId: QUOTE_ID,
+                userId: USER_ID,
+                voteState: voteCountModifier
             }
         })
-        console.log('vote CREATE OK');
 
-        quote = await quote.increment("voteCount")
+        if (created) {
+            console.log('vote CREATE OK');
+
+            console.log(`quote voteCount: ${quote.get("voteCount")} + ${voteCountModifier}`)
+
+            quote.set("voteCount", quote.get("voteCount") + voteCountModifier)
+            quote = await quote.save();
+            console.log('quote voteCount CHANGE  OK');
+        } else {
+            // check if the user has changed his vote
+            if (vote.voteState !== voteCountModifier) {
+                vote.set("voteState", voteCountModifier);
+                vote = await vote.save();
+                console.log('vote UPDATE OK');
+
+
+                const curVoteCount = +quote.get("voteCount")
+                // in the case of vote change the vote count needs to be changed by 2
+                const changeVoteCountMod = voteCountModifier * 2; 
+
+                console.log(`quote voteCount: ${curVoteCount} + ${changeVoteCountMod}`)
+                quote.set("voteCount", curVoteCount + changeVoteCountMod)
+                quote = await quote.save();
+                console.log('quote voteCount CHANGE OK');
+            }
+        }
 
         return res.status(200).json(quote);
     } catch (error) {

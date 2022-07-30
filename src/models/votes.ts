@@ -27,9 +27,9 @@ const Votes = db.define('votes', {
         }   
     },
     voteState:{
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
         allowNull: false,
-        isIn: [[VoteState.upvoted, VoteState.downvoted]],
+        isIn: [[1, -1]],
     }
 });
 
