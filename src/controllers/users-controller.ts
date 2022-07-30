@@ -13,7 +13,7 @@ async function createOne(req: Request, res: Response, next: NextFunction) {
 
         try {
             const user = await User.create(USER_MODEL);
-            console.log('OK createOne USER: ', user);
+            console.log('OK createOne USER: ', user.dataValues);
             return res.status(201).json(user);
         } catch (error) {
             console.error('ERROR in createOne ', error)
@@ -45,8 +45,14 @@ async function getOne(req: Request, res: Response, next: NextFunction) {
 
     try {
         const USER = await User.findByPk(ID)
-        console.log('OK getOne USER: ', USER.dataValues)
-        return res.status(200).json(USER);
+        if(USER){
+            console.log('OK getOne USER: ', USER?.dataValues)
+            return res.status(200).json(USER);    
+        }
+        else{
+            console.log('NOT FOUND getOne USER ', ID)
+            return res.status(404).end();
+        }
     } catch (error) {
         console.error(error);
         return res.status(500).json(error);

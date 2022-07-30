@@ -37,18 +37,24 @@ router.route('/:id')
 
 router.post('/:id/vote', async (req: Request, res: Response, next: NextFunction) => {
     console.log('vote QUOTES ', req.params.id, 'VOTE: ', req.body.voteState)
-    
+
     try {
         const quote = await Quotes.findByPk(req.params.id);
         // TODO: get userId from token
-        await Votes.findOrCreate({ where: { quoteId: req.params.id, userId: 99, voteState: req.body.voteState } })
+        await Votes.findOrCreate({
+            where: {
+                quoteId: req.params.id,
+                userId: 99,
+                voteState: req.body.voteState
+            }
+        })
         console.log('vote QUOTES OK ', quote);
         return res.status(200).json(quote.dataValues);
     } catch (error) {
         console.error('vote QUOTES ERR', error);
         return res.status(400).json(error);
     }
-}
+})
     
 
 
