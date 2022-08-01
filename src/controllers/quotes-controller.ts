@@ -111,8 +111,16 @@ router.get('/most-liked', async (req: Request, res: Response, next: NextFunction
 })
 
 router.get('/most-recent', async (req: Request, res: Response, next: NextFunction) => {
-    // todo
-    return res.status(404).send('not implemented');
+    try {
+        const mostRecentQuotes = await Quotes.findAll({
+            order: [['createdAt', 'DESC']]
+        })
+
+        return res.status(200).json(mostRecentQuotes);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
 })
 
 router.get('/random', async (req: Request, res: Response, next: NextFunction) => {
@@ -127,13 +135,15 @@ router.get('/random', async (req: Request, res: Response, next: NextFunction) =>
     const randIdx = Math.floor(Math.random() * quoteCnt);
     console.debug(`quoteCnt: ${quoteCnt}\trandIdx: ${randIdx}`);
 
-    const randomQuoteQuery = await Quotes.findAll({ offset: randIdx, limit: 1, include: User })
+    const randomQuoteQuery = await Quotes.findAll(
+        {
+            offset: randIdx, limit: 1, include: {
+                model: User,
+                attributes: { exclude: ['password'] }
+            }
+        })
+
     console.debug('random quote: ', randomQuoteQuery[0].dataValues);
-
-    // todo: exclude password when mapping to model
-    // { attributes: { exclude: ['password'] } }
-    randomQuoteQuery[0].dataValues.user.password = null;
-
     return res.status(200).json(randomQuoteQuery[0]);
 })
 
