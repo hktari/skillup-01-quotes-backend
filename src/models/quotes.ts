@@ -9,14 +9,6 @@ const Quotes = db.define('quotes', {
         allowNull: false,
         primaryKey: true,
     },
-    userId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-            model: db.models.users,
-            key: 'id'
-        }
-    },
     text: {
         type: Sequelize.STRING
     },

@@ -37,7 +37,7 @@ async function getUserIdByEmail(email: string) {
     return user.get('id');
 }
 
-function parseVoteState(voteState: any) : VoteState {
+function parseVoteState(voteState: any): VoteState {
     return voteState === null ? VoteState.novote : voteState as VoteState
 }
 
@@ -98,6 +98,7 @@ router.route('/')
 
 router.get('/most-liked', async (req: Request, res: Response, next: NextFunction) => {
 
+
     // todo:
     return res.status(404).send('not implemented');
 })
@@ -108,9 +109,24 @@ router.get('/most-recent', async (req: Request, res: Response, next: NextFunctio
 })
 
 router.get('/random', async (req: Request, res: Response, next: NextFunction) => {
+    console.log('[GET] /quotes/random')
 
-    // todo
-    return res.status(404).send('not implemented');
+    const quoteCnt = await Quotes.count();
+
+    if (quoteCnt === 0) {
+        return res.status(200).json({})
+    }
+
+    const randIdx = Math.floor(Math.random() * quoteCnt);
+    console.debug(`quoteCnt: ${quoteCnt}\trandIdx: ${randIdx}`);
+
+    const randomQuoteQuery = await Quotes.findAll({ offset: randIdx, limit: 1, include: User })
+    console.debug('random quote: ', randomQuoteQuery[0].dataValues);
+
+    // todo: exclude password when mapping to model
+    randomQuoteQuery[0].dataValues.user.password = null;
+
+    return res.status(200).json(randomQuoteQuery[0]);
 })
 
 

@@ -8,4 +8,7 @@ export default function setupRelations() {
 
     Quotes.hasMany(Votes);
     Votes.belongsTo(Quotes);
+
+    Quotes.belongsTo(Users);
+    Users.hasMany(Quotes);
 }
