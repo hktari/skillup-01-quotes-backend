@@ -4,35 +4,36 @@ import { authenticateToken } from '../util/auth';
 import User from '../models/users'
 import { getUserIdByEmail } from '../util/common';
 import Quotes from '../models/quotes';
-import { idText } from 'typescript';
+import { couldStartTrivia, createNoSubstitutionTemplateLiteral, idText } from 'typescript';
 
 const router = Router();
 
-router.use(async (req: any, res: any, next: NextFunction) => {
-    console.debug('retrieving use data');
-    const user = await User.findOne({
-        where: {
-            email: req.user.email
-        },
-        attributes: {
-            exclude: ['password']
-        }
-    })
-
-    if (!req.user) {
-        console.log(`user ${req.user.email} not found.`)
-        return res.status(400).json({ error: 'user not found.' });
+function fetchUserData() {
+    async (req: any, res: any, next: NextFunction) => {
     }
+}
 
-    req.user = user;
-    next();
-})
+// router.use(fetchUserData)
 
 router.route('/')
     .get(async (req: any, res: any, next: NextFunction) => {
         console.debug('[GET] /me')
         return res.status(200).json(req.user);
     })
+
+router.post('/update-password', async (req: any, res: any, next: NextFunction) => {
+    console.log('updating password', req.user)
+
+    try {
+        const user = req.user;
+        user.set('password', req.body.password)
+        await user.save();
+        return res.sendStatus(200);
+    } catch (error) {
+        console.log('error updating password', error);
+        return res.status(400).json(error)
+    }
+})
 
 router.post('/myquote', async (req: any, res: any, next: NextFunction) => {
     console.log('add quote')
