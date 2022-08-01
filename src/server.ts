@@ -44,7 +44,7 @@ app.get("/healthy", (req: any, res: any) => {
 app.use(authController);
 
 app.use('/users', authenticateToken, usersController);
-app.use('/quotes', authenticateToken, quotesController);
+app.use('/quotes', quotesController);
 
 const start = async () => {
   try {
