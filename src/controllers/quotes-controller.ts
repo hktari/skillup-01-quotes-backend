@@ -6,6 +6,7 @@ import * as Sequelize from 'sequelize'
 import db from '../util/database'
 import { Query } from 'pg'
 import { authenticateToken } from '../util/auth'
+import User from '../models/users'
 
 
 const express = require('express');
@@ -17,16 +18,41 @@ type QuotesQuery = {
     voteCount: number
     userId: number,
     username: string,
-    userProfileImg: string
+    userProfileImg: string,
+    voteState: any
 }
 
+async function getUserIdByEmail(email: string) {
+    const user = await User.findOne({
+        where: {
+            email: email
+        }
+    })
+
+    if (!user) {
+        throw new Error(`Can't get userId. User ${email} not found`);
+    }
+
+    console.debug(user);
+    return user.get('id');
+}
+
+function parseVoteState(voteState: any) : VoteState {
+    return voteState === null ? VoteState.novote : voteState as VoteState
+}
 
 router.route('/')
-    .get(authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+    .get(authenticateToken, async (req: any, res: Response, next: NextFunction) => {
         console.log('getAll QUOTES')
+        console.debug('logged in user: ', req.user.email)
+
         try {
-            const queryResult: QuotesQuery[] = await db.query(`SELECT quotes.id, text, "voteCount", "userId", users.username, users."userProfileImg"
-            FROM quotes INNER JOIN users ON quotes."userId" = users.id`,
+            const loggedInUserId = await getUserIdByEmail(req.user.email);
+
+            const queryResult: QuotesQuery[] = await db.query(
+                `SELECT quotes.id, text, "voteCount", quotes."userId", users.username, users."userProfileImg", votes."voteState"
+                FROM quotes INNER JOIN users ON quotes."userId" = users.id
+                LEFT OUTER JOIN votes ON votes."userId" = ${loggedInUserId} AND votes."quoteId" = quotes.id;`,
                 { type: Sequelize.QueryTypes.SELECT, raw: true })
 
             console.log('getAll QUOTES OK', queryResult)
@@ -37,7 +63,7 @@ router.route('/')
                     id: q.id,
                     text: q.text,
                     voteCount: q.voteCount,
-                    voteState: VoteState.novote, // TODO,
+                    voteState: parseVoteState(q.voteState),
                     user: {
                         id: q.userId,
                         username: q.username,
@@ -97,7 +123,7 @@ router.route('/:id')
             const queryResult: QuotesQuery[] = await db.query(`SELECT quotes.id, text, "voteCount", "userId", users.username, users."userProfileImg"
                 FROM quotes INNER JOIN users ON quotes."userId" = users.id
                 WHERE quotes.id = ${req.params.id}`,
-                    { type: Sequelize.QueryTypes.SELECT, raw: true })
+                { type: Sequelize.QueryTypes.SELECT, raw: true })
 
             console.log('getOne QUOTES OK ', queryResult);
             return res.status(200).json(queryResult);

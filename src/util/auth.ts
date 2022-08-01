@@ -11,7 +11,10 @@ export function authenticateToken(req: any, res: any, next: NextFunction) {
     jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
         console.debug('authenticate...')
 
-        if (err) return res.sendStatus(403)
+        if (err) {
+            console.log(err);
+            return res.sendStatus(403)
+        }
 
         console.debug('success! user: ', user)
         req.user = user;
