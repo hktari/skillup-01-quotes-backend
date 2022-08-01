@@ -182,6 +182,10 @@ router.post('/:id/vote', authenticateToken, async (req: any, res: Response, next
         console.log('QUOTE found');
 
         // either +1 or -1
+        if(req.body.voteState < -1 || req.body.voteState > 1) {
+            return res.sendStatus(400)
+        }
+        
         const voteCountModifier = (Number)(req.body.voteState);
 
         const votes = await quote.getVotes({
