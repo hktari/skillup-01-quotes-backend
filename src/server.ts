@@ -24,8 +24,17 @@ if (configReadin.error) {
 const PORT = 8080;
 const HOST = '0.0.0.0';
 
+
 // App handlers
 const app = express();
+
+var cors = require('cors')
+var corsOptions = {
+  origin: 'http://example.com',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors())
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));

@@ -72,7 +72,13 @@ router.get('/most-liked', async (req: Request, res: Response, next: NextFunction
 
     try {
         const mostLikedQuotes = await Quotes.findAll({
-            order: [['voteCount', 'DESC']]
+            order: [['voteCount', 'DESC']],
+            include: [{
+                model: User,
+                attributes: {
+                    exclude: ['password']
+                }
+            }]
         })
 
         return res.status(200).json(mostLikedQuotes);
@@ -85,7 +91,13 @@ router.get('/most-liked', async (req: Request, res: Response, next: NextFunction
 router.get('/most-recent', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const mostRecentQuotes = await Quotes.findAll({
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: User,
+                attributes: {
+                    exclude: ['password']
+                }
+            }]
         })
 
         return res.status(200).json(mostRecentQuotes);
