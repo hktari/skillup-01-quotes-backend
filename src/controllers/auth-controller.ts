@@ -11,6 +11,31 @@ import Users from '../models/users'
 const express = require('express');
 const router = express.Router()
 
+
+router.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
+    console.log('signup: [POST]');
+
+    try {
+        const USER_MODEL = {
+            username: req.body.username,
+            email: req.body.email,
+            password: req.body.password,
+        }
+
+        try {
+            const user = await Users.create(USER_MODEL);
+            console.log('OK signup USER: ', user.dataValues);
+            return res.status(201).json(user);
+        } catch (error) {
+            console.error('ERROR in signup ', error)
+            return res.status(500).json(error);
+        }
+    } catch (error) {
+        return res.status(400).json('Bad Request');
+    }
+
+})
+
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     console.debug('login: ', req.body.email)
     console.debug(`email: ${req.body.email}: ${req.body.password}`)

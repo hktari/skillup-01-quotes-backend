@@ -7,7 +7,7 @@ import db from '../util/database'
 import { Query } from 'pg'
 import { authenticateToken } from '../util/auth'
 import User from '../models/users'
-
+import { getUserIdByEmail } from '../util/common'
 
 const express = require('express');
 const router = express.Router()
@@ -20,21 +20,6 @@ type QuotesQuery = {
     username: string,
     userProfileImg: string,
     voteState: any
-}
-
-async function getUserIdByEmail(email: string) {
-    const user = await User.findOne({
-        where: {
-            email: email
-        }
-    })
-
-    if (!user) {
-        throw new Error(`Can't get userId. User ${email} not found`);
-    }
-
-    console.debug(user);
-    return user.get('id');
 }
 
 function parseVoteState(voteState: any): VoteState {
@@ -79,19 +64,6 @@ router.route('/')
         } catch (error) {
             console.error(error);
             return res.status(500).json(error)
-        }
-    })
-    .post(authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
-        const USER_ID = req.body.userId; // TODO: get userid from token
-
-        console.log('createOne QUOTES', `user: ${USER_ID}`);
-
-        try {
-            const QUOTE = await Quotes.create({ userId: USER_ID, text: req.body.text })
-            console.log('createOne QUOTES', 'OK', QUOTE.dataValues)
-            return res.status(200).json(QUOTE);
-        } catch (error) {
-            return res.status(400).json(error);
         }
     })
 
@@ -182,10 +154,10 @@ router.post('/:id/vote', authenticateToken, async (req: any, res: Response, next
         console.log('QUOTE found');
 
         // either +1 or -1
-        if(req.body.voteState < -1 || req.body.voteState > 1) {
+        if (req.body.voteState < -1 || req.body.voteState > 1) {
             return res.sendStatus(400)
         }
-        
+
         const voteCountModifier = (Number)(req.body.voteState);
 
         const votes = await quote.getVotes({

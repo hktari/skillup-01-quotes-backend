@@ -5,6 +5,8 @@ import sequelize from './util/database'
 import usersController from "./controllers/users-controller"
 import quotesController from './controllers/quotes-controller'
 import authController from './controllers/auth-controller'
+import userProfileController from './controllers/user-profile-controller'
+
 import { authenticateToken } from './util/auth'
 
 import setupRelations from './models/relations'
@@ -45,6 +47,7 @@ app.use(authController);
 
 app.use('/users', authenticateToken, usersController);
 app.use('/quotes', quotesController);
+app.use('/me', authenticateToken, userProfileController);
 
 const start = async () => {
   try {
