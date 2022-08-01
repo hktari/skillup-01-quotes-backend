@@ -167,10 +167,9 @@ router.route('/:id')
         }
     })
 
-router.post('/:id/vote', authenticateToken, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/vote', authenticateToken, async (req: any, res: Response, next: NextFunction) => {
     const QUOTE_ID = req.params.id;
-    // TODO: get userId from token
-    const USER_ID = req.body.userId;
+    const USER_ID = await getUserIdByEmail(req.user.email);
 
     console.log('vote QUOTES ', QUOTE_ID, 'VOTE: ', req.body.voteState, 'userId: ', USER_ID)
 
