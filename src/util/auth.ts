@@ -46,7 +46,6 @@ export function authenticateToken(req: any, res: any, next: NextFunction) {
 export function generateAccessToken(email: string) {
     return jwt.sign({
         email: email
-        // TODO: exp field
     }, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 

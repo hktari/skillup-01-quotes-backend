@@ -8,13 +8,6 @@ import { couldStartTrivia, createNoSubstitutionTemplateLiteral, idText } from 't
 
 const router = Router();
 
-function fetchUserData() {
-    async (req: any, res: any, next: NextFunction) => {
-    }
-}
-
-// router.use(fetchUserData)
-
 router.route('/')
     .get(async (req: any, res: any, next: NextFunction) => {
         console.debug('[GET] /me')
