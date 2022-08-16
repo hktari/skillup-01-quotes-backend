@@ -44,7 +44,8 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         const user = await Users.findOne({
             where: {
                 email: req.body.email
-            }
+            },
+            attributes: { exclude: ['password'] }
         })
 
         if (!user) {
@@ -58,7 +59,11 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         }
 
         const token = generateAccessToken(req.body.email);
-        return res.status(200).json(token);
+        const payload = {
+            ...user,
+            token: token
+        }
+        return res.status(200).json(payload);
 
     } catch (error) {
         console.error(error);
