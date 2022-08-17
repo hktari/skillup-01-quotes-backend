@@ -3,29 +3,15 @@ version: '3.8'
 services:
   quotes_api:
     container_name: quotes_api
-    image: node-test:1.0.0
+    image: hktari/quotesapp-backend
     build:
       context: .
     ports:
-      - '80:8080'
+      - '8080:8080'
     environment:
       - PGUSER=hktari
       - PGPASSWORD=123qweAsd.
       - PGDATABASE=quotesapp
-      - PGHOST=db
-    depends_on:
-      - db
-  db:
-    container_name: db
-    image: 'postgres:12'
-    ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_USER=hktari
-      - POSTGRES_PASSWORD=123qweAsd.
-      - POSTGRES_DB=quotesapp
-    volumes:
-      - pgdata1:/var/lib/postgresql/data
-
-volumes:
-  pgdata1: {}
+      - PGHOST=host.docker.internal
+    extra_hosts:
+      - host.docker.internal:host-gateway

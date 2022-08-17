@@ -1,4 +1,4 @@
-FROM public.ecr.aws/bitnami/node:15
+FROM node:16
 # COPY --from=public.ecr.aws/tinystacks/secret-env-vars-wrapper:latest-x86 /opt /opt
 # COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.3.2-x86_64 /lambda-adapter /opt/extensions/lambda-adapter
 
@@ -16,6 +16,6 @@ RUN npm run build
 
 # Bundle app source
 COPY . .
-
+ENV PGHOST=host.docker.internal
 EXPOSE 80
 CMD [ "node", "built/server.js" ]
