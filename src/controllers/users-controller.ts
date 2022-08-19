@@ -5,7 +5,12 @@ import User from '../models/users'
 async function getAll(req: Request, res: Response, next: NextFunction) {
     console.log('getAll: [GET] /users/');
     try {
-        const ALL = await User.findAll()
+        const ALL = await User.findAll({
+            attributes: {
+                exclude: ['password']
+            }
+        }
+        )
         console.log(
             'OK getAll USER: ',
             ALL.map((el: any) => el.dataValues),
@@ -22,7 +27,13 @@ async function getOne(req: Request, res: Response, next: NextFunction) {
     console.log('getOne: [GET] /users/' + ID)
 
     try {
-        const USER = await User.findByPk(ID)
+        const USER = await User.findByPk(ID,
+            {
+                attributes: {
+                    exclude: ['password']
+                }
+            }
+        )
         if (USER) {
             console.log('OK getOne USER: ', USER?.dataValues)
             return res.status(200).json(USER);
