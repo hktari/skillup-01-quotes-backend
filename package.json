@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/pg": "^8.6.1",
     "aws-sdk": "^2.822.0",
+    "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.16.1",

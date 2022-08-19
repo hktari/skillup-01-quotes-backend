@@ -11,15 +11,18 @@ import Users from '../models/users'
 const express = require('express');
 const router = express.Router()
 
+const bcrypt = require("bcrypt");
 
 router.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
     console.log('signup: [POST]');
 
     try {
+        console.debug('hashing password...')
+        const pwdHash = await bcrypt.hash(req.body.password, 5);
         const USER_MODEL = {
             username: req.body.username,
             email: req.body.email,
-            password: req.body.password,
+            password: pwdHash,
         }
 
         try {
@@ -44,25 +47,25 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         const user = await Users.findOne({
             where: {
                 email: req.body.email
-            },
-            attributes: { exclude: ['password'] }
+            }
         })
 
         if (!user) {
             console.debug('user not found');
             return res.status(400).json({ error: 'user not found' })
         }
-
-        if (user.password !== req.body.password) {
+        if (!await bcrypt.compare(req.body.password, user.password)) {
             console.debug('invalid credentials')
             return res.status(400).json({ error: 'invalid credentials' })
         }
 
         const token = generateAccessToken(req.body.email);
-        const payload = {
-            ...user,
+        let payload = {
+            ...user.dataValues,
             token: token
         }
+        payload.password = null;
+        console.debug(`payload`, payload);
         return res.status(200).json(payload);
 
     } catch (error) {
