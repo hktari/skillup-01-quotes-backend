@@ -158,7 +158,12 @@ router.post('/:id/vote', authenticateToken, async (req: any, res: Response, next
     console.log('vote QUOTES ', QUOTE_ID, 'VOTE: ', req.body.voteState, 'userId: ', USER_ID)
 
     try {
-        let quote = await Quotes.findByPk(QUOTE_ID);
+        let quote = await Quotes.findByPk(QUOTE_ID, {
+            include: {
+                model: User,
+                attributes: { exclude: ['password'] }
+            }
+        });
         if (!quote) {
             return res.status(404).end();
         }
