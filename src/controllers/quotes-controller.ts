@@ -68,6 +68,7 @@ router.route('/')
     })
 
 
+// TODO: implement pagination
 router.get('/most-liked', async (req: Request, res: Response, next: NextFunction) => {
 
     try {
@@ -80,7 +81,7 @@ router.get('/most-liked', async (req: Request, res: Response, next: NextFunction
                 }
             }]
         })
-
+        // todo: add vote state
         return res.status(200).json(mostLikedQuotes);
     } catch (error) {
         console.error(error);
@@ -88,6 +89,7 @@ router.get('/most-liked', async (req: Request, res: Response, next: NextFunction
     }
 })
 
+// TODO: implement pagination
 router.get('/most-recent', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const mostRecentQuotes = await Quotes.findAll({
@@ -99,6 +101,7 @@ router.get('/most-recent', async (req: Request, res: Response, next: NextFunctio
                 }
             }]
         })
+        // todo: add vote state
 
         return res.status(200).json(mostRecentQuotes);
     } catch (error) {
@@ -126,6 +129,7 @@ router.get('/random', async (req: Request, res: Response, next: NextFunction) =>
                 attributes: { exclude: ['password'] }
             }
         })
+    // todo: add voteState
 
     console.debug('random quote: ', randomQuoteQuery[0].dataValues);
     return res.status(200).json(randomQuoteQuery[0]);
