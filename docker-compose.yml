@@ -14,11 +14,12 @@ services:
       environment:
         - API_HOST=quotes_api
         - API_PORT=8080
-  # certbot:
-  #   image: certbot/certbot:latest
-  #   volumes:
-  #     - ./certbot/www/:/var/www/certbot/:rw
-  #     - ./certbot/conf/:/etc/letsencrypt/:rw
+        - DOMAIN=localhost
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
   quotes_api:
     container_name: quotes_api
     build:
