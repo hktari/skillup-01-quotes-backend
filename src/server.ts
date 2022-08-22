@@ -13,10 +13,12 @@ import setupRelations from './models/relations'
 setupRelations()
 
 import { config, config as configEnvVars } from 'dotenv'
-const configReadin = configEnvVars();
+if (process.env.NODE_ENV === 'development') {
+  const configReadin = configEnvVars();
 
-if (configReadin.error) {
-  console.error('Error reading environment variables', configReadin.error);
+  if (configReadin.error) {
+    console.error('Error reading environment variables', configReadin.error);
+  }
 }
 
 
