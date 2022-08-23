@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import Quotes from '../models/quotes'
 import Votes from '../models/votes'
-import { Quote as QuoteDTO, User as UserDTO, AllQuotes, VoteState } from '../common/interface'
+import { Quote as QuoteDTO, User as UserDTO, VoteState, QuotesList } from '../common/interface'
 import * as Sequelize from 'sequelize'
 import db from '../util/database'
 import { Query } from 'pg'
@@ -24,7 +24,7 @@ type QuotesQuery = {
 }
 
 function parseVoteState(voteState: any): VoteState {
-    return voteState === null ? VoteState.novote : voteState as VoteState
+    return voteState === null || voteState === undefined ? VoteState.novote : voteState as VoteState
 }
 
 const quotesQuery = () => `SELECT quotes.id, text, "voteCount", quotes."userId", users.username, users."userProfileImg"
@@ -44,10 +44,9 @@ function queryResultToDTO(queryResult: QuotesQuery[]): QuoteDTO[] {
             user: {
                 id: q.userId,
                 username: q.username,
+                email: q.username,
                 karmaPoints: 0, // TODO
-                profileImg: {
-                    thumbnailUrl: q.userProfileImg
-                }
+                userProfileImg: q.userProfileImg
             }
         }
     })
@@ -74,48 +73,46 @@ router.route('/')
         }
     })
 
-
+// todo: return loggedIn user voteState 
 router.get('/most-liked', loadPaginationParams, async (req: any, res: Response, next: NextFunction) => {
     try {
-        let mostLikedQuotes: QuoteDTO[] = []
-
-        if (req.user) {
-            const loggedInUserId = await getUserIdByEmail(req.user.email);
-
-            const queryResult = await Quotes.findAll({
-                order: [['voteCount', 'DESC']],
-                include: [{
-                    model: User,
-                    attributes: {
-                        exclude: ['password']
-                    }
-                },
-                {
-                    model: Votes,
-                    where: {
-                        userId: loggedInUserId
-                    }
-                }],
-                offset: req.pagination.startIdx,
-                limit: req.pagination.pageSize
-            })
-            mostLikedQuotes = queryResultToDTO(queryResult.dataValues)
-        } else {
-            await db.query(quotesQuery())
+        const result: QuotesList = {
+            ...req.pagination,
+            quotes: [],
+            totalQuotes: 0
         }
 
-        // todo: add vote state
-        return res.status(200).json(mostLikedQuotes);
+        const queryResult = await Quotes.findAndCountAll({
+            order: [['voteCount', 'DESC']],
+            include: [{
+                model: User,
+                attributes: {
+                    exclude: ['password']
+                }
+            }],
+            offset: req.pagination.startIdx,
+            limit: req.pagination.pageSize
+        })
+        result.quotes = queryResultToDTO(queryResult.rows)
+        result.totalQuotes = queryResult.count
+
+        return res.status(200).json(result);
     } catch (error) {
         console.error(error);
         return res.status(500).json(error);
     }
 })
 
-// TODO: implement pagination
+// todo: return loggedIn user voteState 
 router.get('/most-recent', loadPaginationParams, async (req: any, res: Response, next: NextFunction) => {
     try {
-        const mostRecentQuotes = await Quotes.findAll({
+        const result: QuotesList = {
+            ...req.pagination,
+            quotes: [],
+            totalQuotes: 0
+        }
+
+        const queryResult = await Quotes.findAndCountAll({
             order: [['createdAt', 'DESC']],
             include: [{
                 model: User,
@@ -126,9 +123,11 @@ router.get('/most-recent', loadPaginationParams, async (req: any, res: Response,
             offset: req.pagination.startIdx,
             limit: req.pagination.pageSize
         })
-        // todo: add vote state
 
-        return res.status(200).json(mostRecentQuotes);
+        result.quotes = queryResultToDTO(queryResult.rows)
+        result.totalQuotes = queryResult.count
+
+        return res.status(200).json(result);
     } catch (error) {
         console.error(error);
         return res.status(500).json(error);

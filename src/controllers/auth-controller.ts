@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import Quotes from '../models/quotes'
 import Votes from '../models/votes'
-import { Quote as QuoteDTO, User as UserDTO, AllQuotes, VoteState } from '../common/interface'
+import { Quote as QuoteDTO, User as UserDTO, VoteState } from '../common/interface'
 import * as Sequelize from 'sequelize'
 import db from '../util/database'
 import { Query } from 'pg'

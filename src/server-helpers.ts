@@ -15,6 +15,6 @@ export function loadPaginationParams(req: any, res: any, next: NextFunction) {
     startIdx: req.query.startIdx ?? 0,
     pageSize: req.query.pageSize ?? 10
   }
-  
+
   next()
 }
