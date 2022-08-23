@@ -8,6 +8,7 @@ import { Query } from 'pg'
 import { authenticateToken } from '../util/auth'
 import User from '../models/users'
 import { getUserIdByEmail } from '../util/common'
+import { loadPaginationParams } from '../server-helpers'
 
 const express = require('express');
 const router = express.Router()
@@ -74,16 +75,14 @@ router.route('/')
     })
 
 
-// TODO: implement pagination
-router.get('/most-liked', async (req: any, res: Response, next: NextFunction) => {
-
+router.get('/most-liked', loadPaginationParams, async (req: any, res: Response, next: NextFunction) => {
     try {
         let mostLikedQuotes: QuoteDTO[] = []
 
         if (req.user) {
             const loggedInUserId = await getUserIdByEmail(req.user.email);
 
-            await Quotes.findAll({
+            const queryResult = await Quotes.findAll({
                 order: [['voteCount', 'DESC']],
                 include: [{
                     model: User,
@@ -96,8 +95,11 @@ router.get('/most-liked', async (req: any, res: Response, next: NextFunction) =>
                     where: {
                         userId: loggedInUserId
                     }
-                }]
+                }],
+                offset: req.pagination.startIdx,
+                limit: req.pagination.pageSize
             })
+            mostLikedQuotes = queryResultToDTO(queryResult.dataValues)
         } else {
             await db.query(quotesQuery())
         }
@@ -111,7 +113,7 @@ router.get('/most-liked', async (req: any, res: Response, next: NextFunction) =>
 })
 
 // TODO: implement pagination
-router.get('/most-recent', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/most-recent', loadPaginationParams, async (req: any, res: Response, next: NextFunction) => {
     try {
         const mostRecentQuotes = await Quotes.findAll({
             order: [['createdAt', 'DESC']],
@@ -120,7 +122,9 @@ router.get('/most-recent', async (req: Request, res: Response, next: NextFunctio
                 attributes: {
                     exclude: ['password']
                 }
-            }]
+            }],
+            offset: req.pagination.startIdx,
+            limit: req.pagination.pageSize
         })
         // todo: add vote state
 

@@ -1,3 +1,4 @@
+import { NextFunction } from "express";
 import User from "../models/users";
 
 export async function getUserIdByEmail(email: string) {
