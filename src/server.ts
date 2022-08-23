@@ -1,3 +1,15 @@
+import { config, config as configEnvVars } from 'dotenv'
+console.log('ENV: ' + process.env.NODE_ENV)
+
+if (process.env.NODE_ENV === 'development') {
+  const configReadin = configEnvVars();
+
+  if (configReadin.error) {
+    console.error('Error reading environment variables', configReadin.error);
+  }
+}
+
+
 import * as express from "express";
 import { json } from "body-parser";
 import sequelize from './util/database'
@@ -11,15 +23,6 @@ import { authenticateToken } from './util/auth'
 
 import setupRelations from './models/relations'
 setupRelations()
-
-import { config, config as configEnvVars } from 'dotenv'
-if (process.env.NODE_ENV === 'development') {
-  const configReadin = configEnvVars();
-
-  if (configReadin.error) {
-    console.error('Error reading environment variables', configReadin.error);
-  }
-}
 
 
 // Constants

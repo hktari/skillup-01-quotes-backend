@@ -26,6 +26,32 @@ function parseVoteState(voteState: any): VoteState {
     return voteState === null ? VoteState.novote : voteState as VoteState
 }
 
+const quotesQuery = () => `SELECT quotes.id, text, "voteCount", quotes."userId", users.username, users."userProfileImg"
+                        FROM quotes INNER JOIN users ON quotes."userId" = users.id`;
+
+const quotesQueryLoggedIn = (loggedInUserId: number) => `SELECT quotes.id, text, "voteCount", quotes."userId", users.username, users."userProfileImg", votes."voteState"
+                        FROM quotes INNER JOIN users ON quotes."userId" = users.id
+                        LEFT OUTER JOIN votes ON votes."userId" = ${loggedInUserId} AND votes."quoteId" = quotes.id;`
+
+function queryResultToDTO(queryResult: QuotesQuery[]): QuoteDTO[] {
+    return queryResult.map<QuoteDTO>(q => {
+        return {
+            id: q.id,
+            text: q.text,
+            voteCount: q.voteCount,
+            voteState: parseVoteState(q.voteState),
+            user: {
+                id: q.userId,
+                username: q.username,
+                karmaPoints: 0, // TODO
+                profileImg: {
+                    thumbnailUrl: q.userProfileImg
+                }
+            }
+        }
+    })
+}
+
 router.route('/')
     .get(authenticateToken, async (req: any, res: Response, next: NextFunction) => {
         console.log('getAll QUOTES')
@@ -34,31 +60,11 @@ router.route('/')
         try {
             const loggedInUserId = await getUserIdByEmail(req.user.email);
 
-            const queryResult: QuotesQuery[] = await db.query(
-                `SELECT quotes.id, text, "voteCount", quotes."userId", users.username, users."userProfileImg", votes."voteState"
-                FROM quotes INNER JOIN users ON quotes."userId" = users.id
-                LEFT OUTER JOIN votes ON votes."userId" = ${loggedInUserId} AND votes."quoteId" = quotes.id;`,
-                { type: Sequelize.QueryTypes.SELECT, raw: true })
+            const queryResult: QuotesQuery[] = await db.query(quotesQueryLoggedIn(loggedInUserId), { type: Sequelize.QueryTypes.SELECT, raw: true })
 
             console.log('getAll QUOTES OK', queryResult)
 
-            // TODO: use sequelize to map query to model
-            const endResult = queryResult.map<QuoteDTO>(q => {
-                return {
-                    id: q.id,
-                    text: q.text,
-                    voteCount: q.voteCount,
-                    voteState: parseVoteState(q.voteState),
-                    user: {
-                        id: q.userId,
-                        username: q.username,
-                        karmaPoints: 0, // TODO
-                        profileImg: {
-                            thumbnailUrl: q.userProfileImg
-                        }
-                    }
-                }
-            })
+            const endResult = queryResultToDTO(queryResult)
 
             return res.status(200).json(endResult);
         } catch (error) {
@@ -69,18 +75,33 @@ router.route('/')
 
 
 // TODO: implement pagination
-router.get('/most-liked', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/most-liked', async (req: any, res: Response, next: NextFunction) => {
 
     try {
-        const mostLikedQuotes = await Quotes.findAll({
-            order: [['voteCount', 'DESC']],
-            include: [{
-                model: User,
-                attributes: {
-                    exclude: ['password']
-                }
-            }]
-        })
+        let mostLikedQuotes: QuoteDTO[] = []
+
+        if (req.user) {
+            const loggedInUserId = await getUserIdByEmail(req.user.email);
+
+            await Quotes.findAll({
+                order: [['voteCount', 'DESC']],
+                include: [{
+                    model: User,
+                    attributes: {
+                        exclude: ['password']
+                    }
+                },
+                {
+                    model: Votes,
+                    where: {
+                        userId: loggedInUserId
+                    }
+                }]
+            })
+        } else {
+            await db.query(quotesQuery())
+        }
+
         // todo: add vote state
         return res.status(200).json(mostLikedQuotes);
     } catch (error) {
