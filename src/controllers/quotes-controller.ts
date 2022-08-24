@@ -18,8 +18,7 @@ type QuotesQuery = {
     text: string,
     voteCount: number
     userId: number,
-    username: string,
-    userProfileImg: string,
+    user: any,
     voteState: any
 }
 
@@ -43,10 +42,10 @@ function queryResultToDTO(queryResult: QuotesQuery[]): QuoteDTO[] {
             voteState: parseVoteState(q.voteState),
             user: {
                 id: q.userId,
-                username: q.username,
-                email: q.username,
+                username: q.user.username,
+                email: q.user.email,
                 karmaPoints: 0, // TODO
-                userProfileImg: q.userProfileImg
+                userProfileImg: q.user.userProfileImg
             }
         }
     })
