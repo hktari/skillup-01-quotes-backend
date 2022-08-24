@@ -35,11 +35,11 @@ const app = express();
 
 var cors = require('cors')
 var corsOptions = {
-  origin: 'http://example.com',
+  origin: 'http://inspiring-cuchufli-4a0455.netlify.app',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
-app.use(cors())
+app.use(cors(corsOptions))
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
